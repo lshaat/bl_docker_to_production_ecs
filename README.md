@@ -14,7 +14,7 @@ By the end of this lab session you'll have seen built a full VPC and Hybrid AWS 
 
 ### Expected time
 
-expected length of lab
+You should be able to deploy this in 30-40 mins
 
 ### Solution overview
 
@@ -28,7 +28,9 @@ Products used:
 - AWS CodePipeline
 - AWS CodeBuild
 
-Diagrams of the solution
+##### High level ovewrview diagram
+
+![High level Diagram](./img/osjs.png)
 
 ## Exercise
 ### Getting started
