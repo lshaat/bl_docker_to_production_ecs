@@ -220,11 +220,92 @@ docker tag osjs:latest 210944566071.dkr.ecr.eu-west-1.amazonaws.com/osjs:latest
 docker push 210944566071.dkr.ecr.eu-west-1.amazonaws.com/osjs:latest
 ```
 
-Your image is now uploaded and ready to be used.
+Your image is now uploaded and ready to be used. make a note of your repository URL.
+
+### Create a task and a Service for ECS
+
+We now need to create a task definition to tell ECS how to run our new image. We'll also need a Service definition to tell ECS how many copies of that task to run and how to connect it to the ALB.
+
+Lets go tot he ECS cluster and click Task Definitions and create new.
+
+![New Task](./img/newtask.png)
+
+Choose EC2 as the launch type.
+
+![Launch type](./img/launchtype.png)
+
+Set the following variables in the wizard:
+
+- **Task Definition Name:** osjs-desktop
+- **Task Role:** yourName-cluster-ECSTaskExecutionRole-FGHDFhgdhj
+- **Network mode:** awsvpc
+- **Task memory (MiB):** 512
+- **Task CPU (unit):** 1024
+
+Now click add container and set the follwoing values:
+
+- **Container name:** osjs-desktop
+- **image:** your image URL (eg. 210944566071.dkr.ecr.eu-west-1.amazonaws.com/osjs:latest)
+- **Hard Limit:** 512
+- **Port Mapping:** 8000 TCP
+
+Now click Add, then Create.
+
+Lets set up the service and run this now!
+
+Go to actions on the task you just created and select create service.
+
+![Create a new service](./img/createservice.png)
+
+Set the following values:
+
+- **Launch Type:** EC2
+- **Service name:** osjs-desktop
+- **Number of tasks:** 1
+
+Click next and set up the network details.
+
+![Network Details](./img/network.png)
+
+In this example VPC is 10.0.0.0/16 and the network subnets are 10.0.3.0/24, 10.0.4.0/24 and 10.0.5.0/24. These are the private subnets and where the AWSVPC driver will create the tasks Elastic Network Interface (ENI)
+
+Edit the security group:
+
+Change tpe to **Custom TCP** and set the port to **8000**
+
+![Security Group](./img/sg.png)
+
+**Note:** in production you'd want to lock this down better
+
+Save the Security Group and scroll to the Load Balancing section.
+
+Select Application Load Balancer and choose your Public Load Balancer.
+
+Add the container and port to the ALB.
+
+![ALB Port](./img/albport.png)
+
+Set the listener for the ALB:
+
+![ALB Config](./img/albconf.png)
+
+Untick **Enable service discovery integration**
+
+Click through and Create the service. The service will show as pending.
+
+![Service Pending](./img/servicepending.png)
+
+Once finished it will show as running.
+
+![Service running](./img/running.png)
+
+Now go to the EC2 section on the AWS console and click on Load Balancers on the right hand side. Find your public load balancer and copy the DNS name.
+
+Visit the URL you just copied in your browser and you should see your OSJS Desktop!
 
 ### Automating docker builds
 
-This tutorial uses AWS CodeBuild to build your Docker image and push the image to Amazon ECR. Add a buildspec.yml file to your source code repository to tells AWS CodeBuild how to do that. The example build specification below does the following:
+now we'll AWS CodeBuild to build your Docker image and push the image to Amazon ECR. Lets add a buildspec.yml file to your source code repository to tells AWS CodeBuild how to do that (this is the git repo you created at the begining). The example build specification below does the following:
 
 - Pre-build stage:
  - Log in to Amazon ECR.
@@ -237,6 +318,11 @@ This tutorial uses AWS CodeBuild to build your Docker image and push the image t
  - Push the image to your ECR repository with both tags.
  - Write a file called imagedefinitions.json in the build root that has your Amazon ECS service's container name and the image and tag. The deployment stage of your CD pipeline uses this information to create a new revision of your service's task definition, and then it updates the service to use the new task definition. The imagedefinitions.json file is required for the AWS CodeDeploy ECS job worker.
 
+##### Create the buildspec
+
+create the following file in your git repo:
+
+buildspec.yml:
 
 ```yaml
 version: 0.2
@@ -262,23 +348,121 @@ phases:
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Writing image definitions file...
-      - printf '[{"name":"osjs","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - printf '[{"name":"osjs-desktop","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
 artifacts:
     files: imagedefinitions.json
 ```
 
-The build specification was written for the following task definition, used by the Amazon ECS service for this tutorial. The REPOSITORY_URI value corresponds to the image repository (without any image tag), and the osjs value near the end of the file corresponds to the container name in the service's task definition.  
+You'll need to change the values of:
 
-TASK DEF HERE
+- REPOSITORY_URI (to your ECR repo for the osjs docker image)
+- printf (only if you changed the name of the service from osjs-desktop)
 
-SERVCIE DEF HERE
+Now add this to git:
 
-
+```bash
+git add .
+git commit -am "Adding buildspec"
+git push
+```
 
 ### Automating deployments
 
-Deploying on new version builds
+##### Creating Your Continuous Deployment Pipeline
+
+Use the AWS CodePipeline wizard to create your pipeline stages and connect your source repository to your ECS service.
+
+To create your pipeline
+
+- Open the AWS CodePipeline console at https://console.aws.amazon.com/codepipeline/.
+
+- On the Welcome page, choose Create pipeline.
+  - If this is your first time using AWS CodePipeline, an introductory page appears instead of Welcome. Choose Get Started Now.
+
+- On the **Step 1: Name** page, for **Pipeline name**, type the name for your pipeline and choose Next step. For this tutorial, the pipeline name is **osjs-desktop**.
+
+- On the **Step 2: Source** page, for **Source provider**, choose **AWS CodeCommit**.
+  - For **Repository name**, choose the name of the AWS CodeCommit repository to use as the source location for your pipeline.
+  - For **Branch name**, choose the branch to use and choose Next step.
+
+- On the **Step 3: Build** page, choose **AWS CodeBuild**, and then choose **Create a new build project**.
+ - For Project name, choose a unique name for your build project. For this tutorial, the project name is osjs-desktop.
+ - For Operating system, choose Ubuntu.
+ - For Runtime, choose Docker.
+ - For Version, choose aws/codebuild/docker:17.09.0 . (or higher)
+ - Choose Save build project.
+ - Choose Next step.
+
+**Note:** The wizard creates an AWS CodeBuild service role for your build project, called code-build-build-project-name-service-role. Note this role name, as you add Amazon ECR permissions to it later.
+
+- On the **Step 4: Deploy** page, for **Deployment provider**, choose **Amazon ECS**.
+ - For Cluster name, choose the Amazon ECS cluster in which your service is running. 
+ - For Service name, choose the service to update and choose Next step. For this tutorial, the service name is osjs-desktop.
+
+- On the **Step 5: Service Role** page, choose **Create role**. On the IAM console page that describes the role to be created for you, choose **Allow**.
+
+- Choose **Next step**.
+
+- On the **Step 6: Review** page, review your pipeline configuration and choose **Create pipeline** to create the pipeline.
+
+**Note:** Now that the pipeline has been created, it attempts to run through the different pipeline stages. However, the default AWS CodeBuild role created by the wizard does not have permissions to execute all of the commands contained in the buildspec.yml file, so the build stage fails. The next section adds the permissions for the build stage.
+
+##### Add Amazon ECR Permissions to the AWS CodeBuild Role
+
+The AWS CodePipeline wizard created an IAM role for the AWS CodeBuild build project, called code-build-build-project-name-service-role. For this tutorial, the name is code-build-osjs-desktop-service-role. Because the buildspec.yml file makes calls to Amazon ECR API operations, the role must have a policy that allows permissions to make these Amazon ECR calls. The following procedure helps you attach the proper permissions to the role.
+
+To add Amazon ECR permissions to the AWS CodeBuild role:
+
+- Open the IAM console at https://console.aws.amazon.com/iam/.
+- In the left navigation pane, choose **Roles**.
+- In the search box, type **code-build-** and choose the role that was created by the AWS CodePipeline wizard. For this tutorial, the role name is code-build-osjs-desktop-service-role.
+- On the **Summary page**, choose **Attach policy**.
+- Select the box to the left of the **AmazonEC2ContainerRegistryPowerUser** policy, and choose **Attach policy**.
+
+##### Testing the pipeline
+
+Now we have this setup we can go back to the terminal and make a change to the DockerFile. Update the contents to the following:
+
+```docker
+FROM debian:latest
+MAINTAINER Ric Harvey <rjh@amazon.com>
+
+RUN apt-get update && \
+    apt-get install -y curl gnupg git bash && \
+    curl -sL https://deb.nodesource.com/setup_8.x | bash - && \
+    apt-get install -y nodejs
+
+RUN git clone https://github.com/os-js/OS.js.git && cd OS.js
+
+WORKDIR OS.js
+
+RUN npm install
+RUN node osjs build
+
+RUN apt-get install -y build-essential
+RUN ./bin/add-package-repo.sh games https://github.com/os-js/OS.js-games.git
+
+CMD node osjs run
+```
+
+This will add the **games** package to our desktop. Save the changes and git back to git:
+
+```bash
+git commit -am "adding games to desktop"
+git push
+```
+
+Now if you watch in in the AWS CodePipeline console you'll see the status of your build. Once each section is complete it shoudl turn green.
+
+![Code Pipeline](./img/pipeline.png)
+
+**Note:** you can also click on the Details section of the build process whilst its running and see whats happening.
+
+Now revisit and refresh the OSJS desktop you have open in your browser. Look at the menu's and you now have games you can play!
+
+![Updated Desktop](./img/updated-desktop.png)
+**Note:** Use your ALB URL not localhost!
 
 ### What next?
 
-Fargate
+If you want to take this to the next level, try changing the task and service to run in Fargate. This way you don't have any EC2 hosts to manage.
