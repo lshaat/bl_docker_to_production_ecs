@@ -1,6 +1,6 @@
-# Builders Lab
+![Builders Lab](./img/builderslab.png)
 ## From docker to production on Amazon ECS
-
+Twitter: [@ric__harvey](https://twitter.com/ric__harvey)
 ### Take aways
 
 By the end of this lab session you'll have seen built a full VPC and Hybrid AWS Fargate and Amazon ECS cluster. Into this cluster you'll learn how to deploy a container service using a CI/CD pipeline.
