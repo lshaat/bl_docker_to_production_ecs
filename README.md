@@ -463,6 +463,10 @@ Now revisit and refresh the OSJS desktop you have open in your browser. Look at 
 ![Updated Desktop](./img/updated-desktop.png)
 **Note:** Use your ALB URL not localhost!
 
+### Summary
+
+You now have an automated pipeline where if you make a change to your Docker image and commit iot to AWS CodeCommit, the image is automatically rebuilt, stored in AWS ECR and then redeployed on the Amazon ECS Cluster. Of course you can build on this and add some more advanced testing in the pipeline stage. 
+
 ### What next?
 
-If you want to take this to the next level, try changing the task and service to run in Fargate. This way you don't have any EC2 hosts to manage.
+If you want to take this to the next level, try changing the task and service to run in AWS Fargate. This way you don't have any EC2 hosts to manage.
