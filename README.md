@@ -175,7 +175,7 @@ Answer a few questions such as stack name and set your Environment variable. Thi
 
 Wait for this to complete in the console.
 
-Cluster creation
+##### Cluster creation
 
 Once its completed we are going to upload two more stacks. One to create a ECS cluster namespace that can run fargate or ECS containers, we'll also create an internal and external facing ALB for connecting to our containers. The second file will bring three ECS hosts to your ECS cluster config, one in each AZ.
 
@@ -183,11 +183,44 @@ Press Create Stack again and upload the **_cluster.yml_** file. Once complete he
 
 Now go back to Cloudformation and create the final stack in the same way. this one is called **_ecs-hosts.yml_**. You'll need to enter the environment name and the cluster name you just copied. once the hosts start you have a fully working cluster.
 
+When creating this document I created an environment called 'dev' I ended up with three stacks created.
+
+![Stacks](./img/stacks.png)
+
 ### Version control and docker registry
 
-Right we need to do two things now. Firstly lets commit our code to git. Secondly we'll create a docker repository for the OSJS image we built locally.
+Right we need to do two things now. Firstly lets commit our code to git. Secondly we'll create a docker repository for the OSJS image we built locally. In your terminal go to the git repository you cloned earlier and run the following commands:
+
+```bash
+git add .
+git commit -am "first commit"
+git push
+```
+
+Now go to the ECS console in your web browser and click on repositories.
 
 
+Create a new repository called osjs:
+
+![Create a New Repo](./img/createrepo.png)
+
+Run the following command in your terminal:
+
+```bash
+$(aws ecr get-login --no-include-email --region eu-west-1)
+```
+
+This will set up docker with credentials to be able to use the docker tools fromt he commandline.
+
+Now lets tag and push the image we built earlier:
+
+```bash
+docker tag osjs:latest 210944566071.dkr.ecr.eu-west-1.amazonaws.com/osjs:latest
+
+docker push 210944566071.dkr.ecr.eu-west-1.amazonaws.com/osjs:latest
+```
+
+Your image is now uploaded and ready to be used.
 
 ### Automating docker builds
 
