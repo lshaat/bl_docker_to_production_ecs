@@ -212,7 +212,7 @@ Run the following command in your terminal:
 $(aws ecr get-login --no-include-email --region eu-west-1)
 ```
 
-This will set up docker with credentials to be able to use the docker tools fromt he commandline.
+This will set up docker with credentials to be able to use the docker tools from the commandline.
 
 Now lets tag and push the image we built earlier:
 
@@ -228,7 +228,7 @@ Your image is now uploaded and ready to be used. make a note of your repository 
 
 We now need to create a task definition to tell ECS how to run our new image. We'll also need a Service definition to tell ECS how many copies of that task to run and how to connect it to the ALB.
 
-Lets go tot he ECS cluster and click Task Definitions and create new.
+Lets go to the ECS cluster and click Task Definitions and create new.
 
 ![New Task](./img/newtask.png)
 
