@@ -115,7 +115,7 @@ Copy the cloneUrlSsh value and run:
 git clone ssh://git-codecommit.eu-west-1.amazonaws.com/v1/repos/osjs
 ```
 
-### Runnign locally
+### Running locally
 
 Now lets create our docker image and test locally in the root of the osjs directory create a new file called DockerFile and add the following conents:
 
