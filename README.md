@@ -310,15 +310,15 @@ Visit the URL you just copied in your browser and you should see your OSJS Deskt
 now we'll AWS CodeBuild to build your Docker image and push the image to Amazon ECR. Lets add a buildspec.yml file to your source code repository to tells AWS CodeBuild how to do that (this is the git repo you created at the begining). The example build specification below does the following:
 
 - Pre-build stage:
- - Log in to Amazon ECR.
- - Set the repository URI to your ECR image and add an image tag with the first seven characters of the Git commit ID of the source.
+  - Log in to Amazon ECR.
+  - Set the repository URI to your ECR image and add an image tag with the first seven characters of the Git commit ID of the source.
 
 - Build stage:
- - Build the Docker image and tag the image both as latest and with the Git commit ID.
+  - Build the Docker image and tag the image both as latest and with the Git commit ID.
 
 - Post-build stage:
- - Push the image to your ECR repository with both tags.
- - Write a file called imagedefinitions.json in the build root that has your Amazon ECS service's container name and the image and tag. The deployment stage of your CD pipeline uses this information to create a new revision of your service's task definition, and then it updates the service to use the new task definition. The imagedefinitions.json file is required for the AWS CodeDeploy ECS job worker.
+  - Push the image to your ECR repository with both tags.
+  - Write a file called imagedefinitions.json in the build root that has your Amazon ECS service's container name and the image and tag. The deployment stage of your CD pipeline uses this information to create a new revision of your service's task definition, and then it updates the service to use the new task definition. The imagedefinitions.json file is required for the AWS CodeDeploy ECS job worker.
 
 ##### Create the buildspec
 
