@@ -117,7 +117,7 @@ git clone ssh://git-codecommit.eu-west-1.amazonaws.com/v1/repos/osjs
 
 ### Running locally
 
-Now lets create our docker image and test locally in the root of the osjs directory create a new file called DockerFile and add the following conents:
+Now lets create our docker image and test locally in the root of the osjs directory create a new file called Dockerfile and add the following conents:
 
 ```docker
 FROM debian:latest
