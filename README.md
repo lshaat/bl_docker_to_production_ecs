@@ -94,7 +94,7 @@ Host git-codecommit.*.amazonaws.com
 Now lets create and clone a repository:
 
 ```bash
-aws codecommit create-repository --repository-name osjs --region eu-west-1
+aws codecommit create-repository --repository-name osjs --region ap-southeast-2
 {
     "repositoryMetadata": {
         "accountId": "210944566071",
@@ -102,16 +102,16 @@ aws codecommit create-repository --repository-name osjs --region eu-west-1
         "repositoryName": "osjs",
         "lastModifiedDate": 1525696265.885,
         "creationDate": 1525696265.885,
-        "cloneUrlHttp": "https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/osjs",
-        "cloneUrlSsh": "ssh://git-codecommit.eu-west-1.amazonaws.com/v1/repos/osjs",
-        "Arn": "arn:aws:codecommit:eu-west-1:210944566071:osjs"
+        "cloneUrlHttp": "https://git-codecommit.ap-southeast-2.amazonaws.com/v1/repos/osjs",
+        "cloneUrlSsh": "ssh://git-codecommit.ap-southeast-2.amazonaws.com/v1/repos/osjs",
+        "Arn": "arn:aws:codecommit:ap-southeast-2:210944566071:osjs"
     }
 }
 ```
 Copy the cloneUrlSsh value and run:
 
 ```bash
-git clone ssh://git-codecommit.eu-west-1.amazonaws.com/v1/repos/osjs
+git clone ssh://git-codecommit.ap-southeast-2.amazonaws.com/v1/repos/osjs
 ```
 
 ### Running locally
@@ -208,7 +208,7 @@ Create a new repository called osjs:
 Run the following command in your terminal:
 
 ```bash
-$(aws ecr get-login --no-include-email --region eu-west-1)
+$(aws ecr get-login --no-include-email --region ap-southeast-2)
 ```
 
 This will set up docker with credentials to be able to use the docker tools from the commandline.
@@ -216,9 +216,9 @@ This will set up docker with credentials to be able to use the docker tools from
 Now lets tag and push the image we built earlier:
 
 ```bash
-docker tag osjs:latest 210944566071.dkr.ecr.eu-west-1.amazonaws.com/osjs:latest
+docker tag osjs:latest 210944566071.dkr.ecr.ap-southeast-2.amazonaws.com/osjs:latest
 
-docker push 210944566071.dkr.ecr.eu-west-1.amazonaws.com/osjs:latest
+docker push 210944566071.dkr.ecr.ap-southeast-2.amazonaws.com/osjs:latest
 ```
 
 Your image is now uploaded and ready to be used. make a note of your repository URL.
@@ -246,7 +246,7 @@ Set the following variables in the wizard:
 Now click add container and set the follwoing values:
 
 - **Container name:** osjs-desktop
-- **image:** your image URL (eg. 210944566071.dkr.ecr.eu-west-1.amazonaws.com/osjs:latest)
+- **image:** your image URL (eg. 210944566071.dkr.ecr.ap-southeast-2.amazonaws.com/osjs:latest)
 - **Hard Limit:** 512
 - **Port Mapping:** 8000 TCP
 
@@ -333,8 +333,8 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws --version
-      - $(aws ecr get-login --region eu-west-1 --no-include-email)
-      - REPOSITORY_URI=210944566071.dkr.ecr.eu-west-1.amazonaws.com/osjs
+      - $(aws ecr get-login --region ap-southeast-2 --no-include-email)
+      - REPOSITORY_URI=210944566071.dkr.ecr.ap-southeast-2.amazonaws.com/osjs
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
   build:
     commands:
