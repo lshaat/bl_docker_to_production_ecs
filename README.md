@@ -120,7 +120,7 @@ Now lets create our docker image and test locally in the root of the osjs direct
 
 ```docker
 FROM debian:latest
-MAINTAINER Ric Harvey <rjh@amazon.com>
+MAINTAINER Louay Shaat <shaaloua@amazon.com>
 
 RUN apt-get update && \
     apt-get install -y curl gnupg git && \
@@ -426,7 +426,7 @@ Now we have this setup we can go back to the terminal and make a change to the D
 
 ```docker
 FROM debian:latest
-MAINTAINER Ric Harvey <rjh@amazon.com>
+MAINTAINER Louay Shaat <shaaloua@amazon.com>
 
 RUN apt-get update && \
     apt-get install -y curl gnupg git bash && \
